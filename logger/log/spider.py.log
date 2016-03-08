@@ -1,0 +1,2 @@
+[2016-02-23 09:32:30][ERROR][spider.py][MainThread][_test_login][210] Error when testing login: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed (_ssl.c:590)
+[2016-02-23 09:32:30][INFO][spider.py][MainThread][login][100] Faile to Login! Exit.

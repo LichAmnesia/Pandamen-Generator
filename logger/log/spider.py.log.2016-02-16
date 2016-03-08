@@ -1,0 +1,18 @@
+[2016-02-21 22:31:20][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:32:03][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:32:54][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:34:18][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:34:18][ERROR][spider.py][MainThread][crawl_questions][125] Fail to fetch the page. Error: 'zhihu_lawspider' object has no attribute 'url_law_question'.
+[2016-02-21 22:34:34][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:35:38][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:37:53][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:41:34][ERROR][spider.py][MainThread][login][72] Failed to try to login. Error: ('Connection aborted.', gaierror(11001, 'getaddrinfo failed'))
+[2016-02-21 22:41:44][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:42:06][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-21 22:43:00][INFO][spider.py][MainThread][login][76] Login successfully!
+[2016-02-22 08:56:39][INFO][spider.py][MainThread][login][77] Login successfully!
+[2016-02-22 08:57:34][INFO][spider.py][MainThread][login][77] Login successfully!
+[2016-02-22 08:57:34][ERROR][spider.py][MainThread][crawl_questions][133] response right!
+[2016-02-22 08:57:45][ERROR][spider.py][MainThread][crawl_questions][133] response right!
+[2016-02-22 09:54:40][ERROR][spider.py][MainThread][_test_login][197] Error when testing login: ('Connection aborted.', gaierror(11001, 'getaddrinfo failed'))
+[2016-02-22 09:54:40][INFO][spider.py][MainThread][login][81] Faile to Login! Exit.
