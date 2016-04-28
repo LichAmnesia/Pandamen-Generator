@@ -239,7 +239,7 @@ def faceFilter(face_file):
                             if i + dx - j - dy - 80 >= 0:
                                 result[i+dx][j+dy] = 255
 
-    result = cv2.GaussianBlur(result,(5,5),20)     
+    result = cv2.GaussianBlur(result,(5,5),1.5)     
     result = cv2.adaptiveThreshold(result,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
     pil_im = Image.fromarray(result)
     # pil_im.show()
@@ -314,8 +314,8 @@ def merge(face_file, base_file):
     face_img = cv2.imread(face_file)
     log_main.info('{0},{1}'.format(face_img.shape,base_img.shape))
     face_img = face_img[face_img.shape[0]/7:face_img.shape[0]/7*6,face_img.shape[1]/7:face_img.shape[1]/7*6]
-    face_img = cv2.resize(face_img,(200,210))
-    base_img[70:280,100:300] = face_img
+    face_img = cv2.resize(face_img,(200,200))
+    base_img[70:270,100:300] = face_img
 
     pil_img = Image.fromarray(base_img)
     face_name = face_file.rsplit('\\',1)[1]
