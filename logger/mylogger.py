@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
-
-# --------------------------------------------
-# Author: Lich_Amnesia <alwaysxiaop@gmail.com>
-# Date: 2016-03-08
-# --------------------------------------------
+# @Author: Lich_Amnesia  
+# @Email: alwaysxiaop@gmail.com
+# @Date:   2016-04-28 13:43:50
+# @Last Modified time: 2016-04-28 13:44:59
+# @FileName: mylogger.py
 
 """logger 生成器.
 """
@@ -63,11 +63,9 @@ class Logger(object):
         encoding = kwargs.get('encoding', 'utf-8')
 
 
-        # 按照系统来 \ 或者 /
-        absdir = os.path.abspath(__file__).rsplit("\\", 1)[0]
-        # print absdir,os.path.abspath(__file__)
+    
+        absdir = os.path.dirname(os.path.abspath(__file__))
         dir_log = os.path.join(absdir, 'log')
-        # print dir_log
         if not os.path.exists(dir_log):
             os.makedirs(dir_log)
 
