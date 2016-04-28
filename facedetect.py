@@ -12,12 +12,13 @@ import cv2
 from PIL import Image,ImageDraw
 # log程序初始化
 from logger.mylogger import Logger
+# copy函数库
+import copy
 log_main = Logger.get_logger(__file__)
 # ---------------------------------------------
 ## 训练文件所在位置文件夹初始化以及文件所在位置
-harr_path = os.path.join(__file__.rsplit('\\',1)[0],'haarcascades')
-img_path = __file__.rsplit('\\',1)[0]
-log_main.info('harr_path = {0}; img_path = {1}'.format(harr_path,img_path))
+harr_path = os.path.join(os.path.dirname(__file__),'haarcascades')
+img_path = os.path.dirname(__file__)
 # ---------------------------------------------
 
 #detectFaces()返回图像中所有人脸的矩形坐标（矩形左上、右下顶点）
@@ -32,10 +33,11 @@ def detectFaces(image_file):
     else:
         gray = img #if语句：如果img维度为3，说明不是灰度图，先转化为灰度图gray，如果不为3，也就是2，原图就是灰度图
 
-    faces = face_cascade.detectMultiScale(gray, 1.2, 5)#1.3和5是特征的最小、最大检测窗口，它改变检测结果也会改变
+    faces = face_cascade.detectMultiScale(gray, 1.1, 6)#1.3和5是特征的最小、最大检测窗口，它改变检测结果也会改变
     result = []
     for (x,y,width,height) in faces:
-        result.append((x,y,x+width,y+height))
+        if width + height > 100:
+            result.append((x,y,x+width,y+height))
     return result
 
 
@@ -47,8 +49,7 @@ def saveFaces(image_file):
         #将人脸保存在save_dir目录下。
         #Image模块：Image.open获取图像句柄，crop剪切图像(剪切的区域就是detectFaces返回的坐标)，save保存。
         save_dir = os.path.join(img_path,'face_output')
-        image_name = image_file.rsplit('\\',1)[1]
-        log_main.info('face_output = {0}'.format(save_dir))
+        image_name = os.path.basename(image_file)
 
         for (x1,y1,x2,y2) in faces:
             save_file = os.path.join(save_dir, image_name.split('.')[0] + "_" + str(count) + ".jpg")
@@ -170,20 +171,87 @@ def drawMouth(image_file):
         log_main.info('drawMouth_ = {0}'.format(image_name))
         img.save(os.path.join(img_path,'drawMouth_'+image_name))
 
+# 颜色反转处理，需要是单通道灰度图像
+def binTrans(Gray):
+    for i in range(Gray.shape[0]):
+        for j in range(Gray.shape[1]):
+            Gray[i][j] = 255 - Gray[i][j]
+    return Gray
+
+# 颜色减淡操作
+# C =MIN( A +（A×B）/（255-B）,255)，其中C为混合结果，A为去色后的像素点，B为高斯模糊后的像素点。
+def dodge(A, B):
+    C = copy.deepcopy(A)
+    for i in range(C.shape[0]):
+        for j in range(C.shape[1]):
+            C[i][j] = min( A[i][j] + (int(int(A[i][j]) * B[i][j])/(255 - B[i][j])),255)
+    return C
+
 def faceFilter(face_file):
-    log_main.info(face_file)
     img = cv2.imread(face_file)
-
-
+    img = cv2.resize(img,(200,200))
     if img.ndim == 3:
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     else:
         gray = img #if语句：如果img维度为3，说明不是灰度图，先转化为灰度图gray，如果不为3，也就是2，原图就是灰度图
-    # 先做中值滤波，canny找边缘，然后去边缘
-    median_result = cv2.medianBlur(gray,7)
-    canny_result = cv2.Canny(median_result,125,180);
-    # log_main.info('{0},{1}'.format(median_result.shape,canny_result.shape))
-    result = cv2.adaptiveThreshold(median_result,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+
+    # 先做高斯滤波，canny找边缘，然后去边缘
+    # log_main.info("shape {0}".format(gray.shape))
+    gray_result = copy.deepcopy(gray)
+    log_main.info(type(gray))
+    inverse_color_result = binTrans(gray)
+    gaussian_result = cv2.GaussianBlur(inverse_color_result,(5,5),120)
+    median_result = gaussian_result
+    dodge_color_result = dodge(gray_result, gaussian_result)
+    canny_result = cv2.Canny(dodge_color_result,0,150)
+   
+    # pil_im = Image.fromarray(dodge_color_result)
+    # pil_im.show()
+    
+    # result = cv2.adaptiveThreshold(dodge_color_result,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+    # result = cv2.GaussianBlur(result,(3,3),1.5)
+    result = copy.deepcopy(dodge_color_result)
+
+    for i in range(canny_result.shape[0]):
+        for j in range(canny_result.shape[1]):
+            if i  < 55:
+                result[i][j] = 255
+            if j  < 20 or j  > 180:
+                result[i][j] = 255
+            if i  > 180:
+                result[i][j] = 255
+            if i  + j  - 280 >= 0:
+                result[i][j] = 255
+            if i  - j  - 80 >= 0:
+                result[i][j] = 255
+            if canny_result[i][j] == 255:
+                for dx in range(-1,1):
+                    for dy in range(-1,1):
+                        if i + dx >= 0 and i + dx < result.shape[0] and  j + dy >= 0 and j + dy < result.shape[1]:
+                            if i + dx < 55:
+                                result[i+dx][j+dy] = 255
+                            if j + dy < 20 or j + dy > 180:
+                                result[i+dx][j+dy] = 255
+                            if i + dx > 180:
+                                result[i+dx][j+dy] = 255
+                            if i + dx + j + dy - 280 >= 0:
+                                result[i+dx][j+dy] = 255
+                            if i + dx - j - dy - 80 >= 0:
+                                result[i+dx][j+dy] = 255
+
+    result = cv2.GaussianBlur(result,(5,5),20)     
+    result = cv2.adaptiveThreshold(result,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY,11,2)
+    pil_im = Image.fromarray(result)
+    # pil_im.show()
+    face_name = face_file.rsplit('\\',1)[1]
+    face_file = os.path.join(os.path.join(img_path,'face_output'),'output_'+face_name)
+    pil_im.save(face_file)
+
+    return face_file
+    # 后面不需要了
+
+    pil_im = Image.fromarray(result)
+    pil_im.show()
     img_shape = result.shape
     ## 检测眼睛
     eyes = detectEyes(face_file)
@@ -255,23 +323,30 @@ def merge(face_file, base_file):
     pil_img.save(face_file)
     log_main.info('{0},{1}'.format(face_img.shape,base_img.shape))
 
-if __name__ == '__main__':
-    img_name = 'meizi.jpg'
-    img_file = os.path.join(__file__.rsplit('\\',1)[0],img_name)
-    log_main.info('{0}'.format(img_file))
-    face_count = saveFaces(img_file)
+# 删除以前的输出文件
+def deletOutFiles(face_output_path):
+    filelist = os.listdir(face_output_path)
+    for file in filelist:
+        os.remove(os.path.join(face_output_path, file))
 
-    base_file = os.path.join(__file__.rsplit('\\',1)[0],'base.jpg')
+if __name__ == '__main__':
+    img_name = 'lyf.jpg'
+    deletOutFiles(os.path.join(os.path.join(os.path.dirname(__file__),'face_output')))
+
+    img_file = os.path.join(os.path.dirname(__file__),img_name)
+    face_count = saveFaces(img_file)
+    base_file = os.path.join(os.path.dirname(__file__),'base.jpg')
     if face_count == 0:
         log_main.info('face_count = {0}, no face detected!'.format(face_count))
-    else :
-        log_main.info('face_count = {0},{1} face detected!'.format(face_count,face_count))
-        for count in range(face_count):
-            face_file = os.path.join(os.path.join(__file__.rsplit('\\',1)[0],'face_output'),img_name.split('.')[0]+'_' + str(count) + '.jpg')
-            log_main.info(face_file)
-            # drawSmiles(face_file)
-            face_file = faceFilter(face_file)
-            merge(face_file, base_file)
+        exit(-1)
+    log_main.info('face_count = {0}, {1} faces detected!'.format(face_count,face_count))
+        
+    for count in range(face_count):
+        face_file = os.path.join(os.path.join(os.path.dirname(__file__),'face_output'),img_name.split('.')[0]+'_' + str(count) + '.jpg')
+        log_main.info("Now it process {0}".format(os.path.basename(face_file)))
+        # drawSmiles(face_file)
+        face_file = faceFilter(face_file)
+        merge(face_file, base_file)
     # drawFaces(img_file)
     # drawEyes(img_file)
     # drawSmiles(face_file)
